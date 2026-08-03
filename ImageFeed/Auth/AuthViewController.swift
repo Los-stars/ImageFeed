@@ -15,8 +15,6 @@ final class AuthViewController: UIViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         configureBackButton()
-
-        // Do any additional setup after loading the view.
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -33,9 +31,9 @@ final class AuthViewController: UIViewController{
     
     private func configureBackButton(){
         navigationController?.navigationBar.backIndicatorImage = UIImage(named: "Backward button")
-        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "Backward button")
+        navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(resource: .backwardButton)
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        navigationItem.titleView?.tintColor = UIColor(named: "ypBlack")
+        navigationItem.titleView?.tintColor = UIColor(resource: .ypBlack)
     }
     
 
@@ -59,7 +57,7 @@ extension AuthViewController: WebViewViewControllerDelegate{
             guard let self = self else { return }
             
             switch result{
-            case .success(let token):
+            case .success:
                 self.delegate?.didAuthenticate(self)
             case .failure(let error):
                 print("OAuth error:", error)

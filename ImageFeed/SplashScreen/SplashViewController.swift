@@ -10,17 +10,14 @@ import UIKit
 class SplashViewController: UIViewController{
     
     private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
-    private let storage = OAuth2TokenStorage()
+    private let storage = OAuth2TokenStorage.shared
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        print(storage.token)
         if storage.token != nil{
             switchToTabBarController()
         }else{
@@ -29,7 +26,8 @@ class SplashViewController: UIViewController{
     }
     
     private func switchToTabBarController(){
-        guard let windows = UIApplication.shared.windows.first else{
+        guard let windowsScene = UIApplication.shared.connectedScenes.first(where: {$0.activationState == .foregroundActive || $0.activationState == .foregroundInactive}) as? UIWindowScene,
+              let windows = windowsScene.windows.first else{
             assertionFailure("Invalid window configuration")
             return
         }

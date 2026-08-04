@@ -16,17 +16,19 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Vector launch screen logo" translatesAutoresizingMaskIntoConstraints="NO" id="8C9-Uh-H4H">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="Vector launch screen logo" translatesAutoresizingMaskIntoConstraints="NO" id="8C9-Uh-H4H">
                                 <rect key="frame" x="160" y="389" width="73" height="75.666666666666686"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="75.666666666666686" id="F4R-te-iVa"/>
+                                    <constraint firstAttribute="width" constant="73" id="YyV-hg-gN2"/>
+                                </constraints>
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" name="YP Black"/>
                         <constraints>
-                            <constraint firstItem="8C9-Uh-H4H" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="330" id="8Bk-i7-cfI"/>
-                            <constraint firstItem="8C9-Uh-H4H" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="160" id="COB-Bs-OOn"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="8C9-Uh-H4H" secondAttribute="trailing" constant="160" id="Enh-7W-L91"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="8C9-Uh-H4H" secondAttribute="bottom" constant="353.32999999999998" id="WMA-As-smR"/>
+                            <constraint firstItem="8C9-Uh-H4H" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="Iln-8T-m7X"/>
+                            <constraint firstItem="8C9-Uh-H4H" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="thV-hg-rHi"/>
                         </constraints>
                     </view>
                 </viewController>

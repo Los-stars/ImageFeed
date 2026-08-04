@@ -51,7 +51,7 @@ final class AuthViewController: UIViewController{
 
 extension AuthViewController: WebViewViewControllerDelegate{
     func webViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
-        vc.dismiss(animated: true)
+        vc.navigationController?.popViewController(animated: true)
         
         networkClient.fetchOAuthToken(code: code) { [weak self] result in
             guard let self = self else { return }
@@ -66,7 +66,7 @@ extension AuthViewController: WebViewViewControllerDelegate{
     }
     
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
-        vc.dismiss(animated: true)
+        vc.navigationController?.popViewController(animated: true)
     }
     
     
@@ -74,7 +74,7 @@ extension AuthViewController: WebViewViewControllerDelegate{
 
 extension AuthViewController{
     private func fetchOAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        networkClient.fetchOAuthToken(code: code) { result in
+        oauth2Service.fetchOAuthToken(code) { result in
             completion(result)
         }
     }

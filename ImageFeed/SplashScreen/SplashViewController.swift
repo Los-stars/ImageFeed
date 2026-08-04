@@ -53,7 +53,7 @@ class SplashViewController: UIViewController{
 
 extension SplashViewController{
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "showAuthenticationScreenSegueIdentifier"{
+        if segue.identifier == showAuthenticationScreenSegueIdentifier{
             guard let navigationController = segue.destination as? UINavigationController,
                   let viewController = navigationController.viewControllers.first as? AuthViewController else {
                 assertionFailure("Failed to prepare for \(showAuthenticationScreenSegueIdentifier)")
@@ -69,6 +69,8 @@ extension SplashViewController{
 
 extension SplashViewController:  AuthViewControllerDelegate{
     func didAuthenticate(_ vc: AuthViewController) {
-        vc.dismiss(animated: true)
+        vc.dismiss(animated: true) { [weak self] in
+            self?.switchToTabBarController()
+        }
     }
 }

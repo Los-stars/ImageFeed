@@ -23,7 +23,7 @@ final class ImagesListViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         tableView.rowHeight = 200
-        tableView.contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
+        tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

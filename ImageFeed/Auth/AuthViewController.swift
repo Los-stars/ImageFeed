@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import ProgressHUD
 
 final class AuthViewController: UIViewController{
     private let oauth2Service = OAuth2Service.shared
@@ -53,7 +54,10 @@ extension AuthViewController: WebViewViewControllerDelegate{
     func webViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         vc.navigationController?.popViewController(animated: true)
         
-        networkClient.fetchOAuthToken(code: code) { [weak self] result in
+        UIBlockingProgressHUD.show()
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+            
+            UIBlockingProgressHUD.dismiss()
             guard let self = self else { return }
             
             switch result{
@@ -61,6 +65,7 @@ extension AuthViewController: WebViewViewControllerDelegate{
                 self.delegate?.didAuthenticate(self)
             case .failure(let error):
                 print("OAuth error:", error)
+                self.showAlert()
             }
         }
     }
@@ -77,5 +82,14 @@ extension AuthViewController{
         oauth2Service.fetchOAuthToken(code) { result in
             completion(result)
         }
+    }
+}
+
+extension AuthViewController{
+    private func showAlert(){
+        let alert = UIAlertAction(title: "Ok", style: .default)
+        let alertController = UIAlertController(title: "Что-то пошло не так", message: "Не удалось войти в систему", preferredStyle: .alert)
+        alertController.addAction(alert)
+        self.present(self, animated: true)
     }
 }

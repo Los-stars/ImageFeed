@@ -1,98 +1,77 @@
 //
-//  NetworkClient.swift
+//  ProfileImageService.swift
 //  ImageFeed
 //
-//  Created by Amir on 28.07.2026.
+//  Created by Amir on 12.08.2026.
 //
 
 import Foundation
 import SwiftKeychainWrapper
 
-protocol NetworkRouting{
-    func fetchOAuthToken(code: String, handler: @escaping (Result<String, Error>) -> Void)
-}
-
-enum HTTPMethod: String{
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
-}
-
-enum AuthServiceError: Error {
-    case invalidRequest
-}
-
-class NetworkClient: NetworkRouting{
-    private let decoder = JSONDecoder()
+final class ProfileImageService{
+    static let shared = ProfileImageService()
+    private init() {}
     
-    private let urlSession = URLSession.shared
+    static let didChangeNotification = Notification.Name(rawValue: "ProfileImageProviderDidChange")
+    
+    private let decoder = JSONDecoder()
     private var task: URLSessionTask?
-    private var lastCode: String?
+    private let urlSession = URLSession.shared
+    private (set) var avatarURL: String?
     
     private enum NetworkError: Error {
         case codeError
     }
     
-    func fetchOAuthToken(code: String, handler: @escaping (Result<String, Error>) -> Void){
+    func fetchProfileImageURL(username: String, _ completion: @escaping (Result<String, Error>) -> Void){
         assert(Thread.isMainThread)
-        guard lastCode != code else{
-            handler(.failure(AuthServiceError.invalidRequest))
-            return
-        }
         
         task?.cancel()
-        lastCode = code
         
-        guard let request = makeOAuthTokenRequest(code: code) else {
-            handler(.failure(AuthServiceError.invalidRequest))
+        guard let request = makeProfileImageRequest(username: username) else {
+            completion(.failure(NetworkError.codeError))
             return
         }
         
-        let task = objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
+        let task = objectTask(for: request) { [weak self] (result: Result<UserResult, Error>) in
             guard let self = self else { return }
             
             self.task = nil
-            self.lastCode = nil
             
             switch result{
             case .success(let body):
-                let isSuccess = KeychainWrapper.standard.set(body.access_token, forKey: "Auth token")
-                guard isSuccess else { return }
-                handler(.success(body.access_token))
+                let avatarURL = body.profile_image.small
+                
+                self.avatarURL = avatarURL
+                NotificationCenter.default
+                    .post(name: ProfileImageService.didChangeNotification,
+                          object: self,
+                          userInfo: ["URL": avatarURL])
+                
+                completion(.success(avatarURL))
             case .failure(let error):
-                handler(.failure(error))
+                print("Decode error:", error)
+                completion(.failure(error))
             }
         }
         self.task = task
         task.resume()
     }
     
-    private func makeOAuthTokenRequest(code: String) -> URLRequest?{
-        guard var urlComponents = URLComponents(string: "https://unsplash.com/oauth/token") else {
-            return nil
-        }
+    
+    private func makeProfileImageRequest(username: String) -> URLRequest?{
+        guard let url = URL(string: "https://api.unsplash.com/users/\(username)") else { return nil }
+        guard let token: String = KeychainWrapper.standard.string(forKey: "Auth token") else { return nil }
         
-        urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "client_secret", value: Constants.secretKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURL),
-            URLQueryItem(name: "code", value: code),
-            URLQueryItem(name: "grant_type", value: "authorization_code")
-        ]
-        
-        guard let authTokenUrl = urlComponents.url else{
-            return nil
-        }
-        
-        var request = URLRequest(url: authTokenUrl)
-        request.httpMethod = HTTPMethod.post.rawValue
-        
+        var request = URLRequest(url: url)
+        request.httpMethod = HTTPMethod.get.rawValue
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
     }
 }
-    
-extension NetworkClient{
+
+
+extension ProfileImageService{
         private func data(
             for request: URLRequest,
             completion: @escaping (Result<Data, Error>) -> Void) -> URLSessionTask{

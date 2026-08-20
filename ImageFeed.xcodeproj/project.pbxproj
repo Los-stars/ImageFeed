@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		293C63123021F0A7007C41BE /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 293C63113021F0A7007C41BE /* WebKit.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		29348A282FF501C6008BD546 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,8 @@
 		29348A0E2FF501C5008BD546 /* ImageFeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageFeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		29348A272FF501C6008BD546 /* ImageFeedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ImageFeedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		29348A312FF501C6008BD546 /* ImageFeedUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ImageFeedUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		293C63113021F0A7007C41BE /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		293C63133021F0CA007C41BE /* libswiftWebKit.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftWebKit.tbd; path = usr/lib/swift/libswiftWebKit.tbd; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -65,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				293C63123021F0A7007C41BE /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,6 +98,7 @@
 				29348A102FF501C5008BD546 /* ImageFeed */,
 				29348A2A2FF501C6008BD546 /* ImageFeedTests */,
 				29348A342FF501C6008BD546 /* ImageFeedUITests */,
+				293C63103021F0A7007C41BE /* Frameworks */,
 				29348A0F2FF501C5008BD546 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -103,6 +111,15 @@
 				29348A312FF501C6008BD546 /* ImageFeedUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		293C63103021F0A7007C41BE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				293C63133021F0CA007C41BE /* libswiftWebKit.tbd */,
+				293C63113021F0A7007C41BE /* WebKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

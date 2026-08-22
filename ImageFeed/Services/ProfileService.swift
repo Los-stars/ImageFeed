@@ -1,98 +1,73 @@
 //
-//  NetworkClient.swift
+//  ProfileService.swift
 //  ImageFeed
 //
-//  Created by Amir on 28.07.2026.
+//  Created by Amir on 11.08.2026.
 //
 
 import Foundation
-import SwiftKeychainWrapper
 
-protocol NetworkRouting{
-    func fetchOAuthToken(code: String, handler: @escaping (Result<String, Error>) -> Void)
-}
-
-enum HTTPMethod: String{
-    case get = "GET"
-    case post = "POST"
-    case put = "PUT"
-    case delete = "DELETE"
-}
-
-enum AuthServiceError: Error {
-    case invalidRequest
-}
-
-class NetworkClient: NetworkRouting{
+final class ProfileService{
+    static let shared = ProfileService()
+    private init() {}
     private let decoder = JSONDecoder()
-    
     private let urlSession = URLSession.shared
     private var task: URLSessionTask?
-    private var lastCode: String?
+    private(set) var profile: Profile?
     
     private enum NetworkError: Error {
         case codeError
     }
     
-    func fetchOAuthToken(code: String, handler: @escaping (Result<String, Error>) -> Void){
+    func fetchProfile(_ token: String, completion: @escaping (Result<Profile, Error>) -> Void){
         assert(Thread.isMainThread)
-        guard lastCode != code else{
-            handler(.failure(AuthServiceError.invalidRequest))
-            return
-        }
         
         task?.cancel()
-        lastCode = code
         
-        guard let request = makeOAuthTokenRequest(code: code) else {
-            handler(.failure(AuthServiceError.invalidRequest))
+        guard let request = makeProfileRequest(token: token) else {
+            completion(.failure(NetworkError.codeError))
             return
         }
         
-        let task = objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
+        let task = objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
             guard let self else { return }
             
             self.task = nil
-            self.lastCode = nil
             
             switch result{
             case .success(let body):
-                let isSuccess = KeychainWrapper.standard.set(body.accessToken, forKey: "Auth token")
-                guard isSuccess else { return }
-                handler(.success(body.accessToken))
+                let profile = Profile(
+                    username: body.username,
+                    name: [body.firstName, body.lastName]
+                        .compactMap {$0}
+                        .joined(separator: " "),
+                    loginName: "@"+body.username,
+                    bio: body.bio ?? "")
+                
+                self.profile = profile
+                completion(.success(profile))
             case .failure(let error):
-                handler(.failure(error))
+                print("Decode error:", error)
+                completion(.failure(error))
             }
         }
         self.task = task
         task.resume()
     }
     
-    private func makeOAuthTokenRequest(code: String) -> URLRequest?{
-        guard var urlComponents = URLComponents(string: "https://unsplash.com/oauth/token") else {
-            return nil
-        }
+    
+    private func makeProfileRequest(token: String) -> URLRequest?{
+        guard let url = URL(string: "https://api.unsplash.com/me") else { return nil }
         
-        urlComponents.queryItems = [
-            URLQueryItem(name: "client_id", value: Constants.accessKey),
-            URLQueryItem(name: "client_secret", value: Constants.secretKey),
-            URLQueryItem(name: "redirect_uri", value: Constants.redirectURL),
-            URLQueryItem(name: "code", value: code),
-            URLQueryItem(name: "grant_type", value: "authorization_code")
-        ]
-        
-        guard let authTokenUrl = urlComponents.url else{
-            return nil
-        }
-        
-        var request = URLRequest(url: authTokenUrl)
-        request.httpMethod = HTTPMethod.post.rawValue
-        
+        var request = URLRequest(url: url)
+        request.httpMethod = HTTPMethod.get.rawValue
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return request
     }
 }
-    
-extension NetworkClient{
+
+
+extension ProfileService{
         private func data(
             for request: URLRequest,
             completion: @escaping (Result<Data, Error>) -> Void) -> URLSessionTask{
@@ -100,6 +75,7 @@ extension NetworkClient{
                     DispatchQueue.main.async{
                         if let error = error{
                             completion(.failure(error))
+                            return
                         }
                         
                         guard let data = data else {

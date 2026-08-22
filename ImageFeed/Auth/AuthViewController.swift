@@ -6,12 +6,15 @@
 //
 
 import UIKit
+import os
+import ProgressHUD
 
 final class AuthViewController: UIViewController{
     private let oauth2Service = OAuth2Service.shared
     private let networkClient = NetworkClient()
     private let showWebViewSegueIdentifier = "ShowWebView"
     weak var delegate: AuthViewControllerDelegate?
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "OAuth")
     override func viewDidLoad() {
         super.viewDidLoad()
         configureBackButton()
@@ -53,14 +56,18 @@ extension AuthViewController: WebViewViewControllerDelegate{
     func webViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         vc.navigationController?.popViewController(animated: true)
         
-        networkClient.fetchOAuthToken(code: code) { [weak self] result in
-            guard let self = self else { return }
+        UIBlockingProgressHUD.show()
+        oauth2Service.fetchOAuthToken(code) { [weak self] result in
+            
+            UIBlockingProgressHUD.dismiss()
+            guard let self else { return }
             
             switch result{
             case .success:
                 self.delegate?.didAuthenticate(self)
             case .failure(let error):
-                print("OAuth error:", error)
+                logger.error("OAuth error: \(error.localizedDescription)")
+                self.showAlert()
             }
         }
     }
@@ -77,5 +84,14 @@ extension AuthViewController{
         oauth2Service.fetchOAuthToken(code) { result in
             completion(result)
         }
+    }
+}
+
+extension AuthViewController{
+    private func showAlert(){
+        let alert = UIAlertAction(title: "Ok", style: .default)
+        let alertController = UIAlertController(title: "Что-то пошло не так", message: "Не удалось войти в систему", preferredStyle: .alert)
+        alertController.addAction(alert)
+        self.present(self, animated: true)
     }
 }

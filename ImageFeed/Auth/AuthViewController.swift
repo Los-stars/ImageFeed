@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import os
 import ProgressHUD
 
 final class AuthViewController: UIViewController{
@@ -13,6 +14,7 @@ final class AuthViewController: UIViewController{
     private let networkClient = NetworkClient()
     private let showWebViewSegueIdentifier = "ShowWebView"
     weak var delegate: AuthViewControllerDelegate?
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app", category: "OAuth")
     override func viewDidLoad() {
         super.viewDidLoad()
         configureBackButton()
@@ -58,13 +60,13 @@ extension AuthViewController: WebViewViewControllerDelegate{
         oauth2Service.fetchOAuthToken(code) { [weak self] result in
             
             UIBlockingProgressHUD.dismiss()
-            guard let self = self else { return }
+            guard let self else { return }
             
             switch result{
             case .success:
                 self.delegate?.didAuthenticate(self)
             case .failure(let error):
-                print("OAuth error:", error)
+                logger.error("OAuth error: \(error.localizedDescription)")
                 self.showAlert()
             }
         }

@@ -34,13 +34,13 @@ final class ProfileImageService{
         }
         
         let task = objectTask(for: request) { [weak self] (result: Result<UserResult, Error>) in
-            guard let self = self else { return }
+            guard let self else { return }
             
             self.task = nil
             
             switch result{
             case .success(let body):
-                let avatarURL = body.profile_image.small
+                let avatarURL = body.profileImage.small
                 
                 self.avatarURL = avatarURL
                 NotificationCenter.default

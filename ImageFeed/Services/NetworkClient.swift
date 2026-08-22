@@ -50,16 +50,16 @@ class NetworkClient: NetworkRouting{
         }
         
         let task = objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
-            guard let self = self else { return }
+            guard let self else { return }
             
             self.task = nil
             self.lastCode = nil
             
             switch result{
             case .success(let body):
-                let isSuccess = KeychainWrapper.standard.set(body.access_token, forKey: "Auth token")
+                let isSuccess = KeychainWrapper.standard.set(body.accessToken, forKey: "Auth token")
                 guard isSuccess else { return }
-                handler(.success(body.access_token))
+                handler(.success(body.accessToken))
             case .failure(let error):
                 handler(.failure(error))
             }

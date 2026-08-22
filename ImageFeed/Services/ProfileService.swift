@@ -30,7 +30,7 @@ final class ProfileService{
         }
         
         let task = objectTask(for: request) { [weak self] (result: Result<ProfileResult, Error>) in
-            guard let self = self else { return }
+            guard let self else { return }
             
             self.task = nil
             
@@ -38,7 +38,7 @@ final class ProfileService{
             case .success(let body):
                 let profile = Profile(
                     username: body.username,
-                    name: [body.first_name, body.last_name]
+                    name: [body.firstName, body.lastName]
                         .compactMap {$0}
                         .joined(separator: " "),
                     loginName: "@"+body.username,

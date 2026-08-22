@@ -12,10 +12,10 @@ class ProfileViewController: UIViewController {
     
     private let profileService = ProfileService.shared
     
-    private var nameLabel: UILabel!
-    private var usernameLabel: UILabel!
-    private var descriptionLabel: UILabel!
-    private var profileImageView: UIImageView!
+    private var nameLabel = UILabel()
+    private var usernameLabel = UILabel()
+    private var descriptionLabel = UILabel()
+    private var profileImageView = UIImageView()
     
     private var profileImageServiceObserver: NSObjectProtocol?
     
@@ -31,7 +31,7 @@ class ProfileViewController: UIViewController {
                 object: nil,
                 queue: .main
             ) { [weak self] _ in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.updateAvatar()
             }
         

@@ -16,14 +16,43 @@ final class ImagesListViewController: UIViewController {
         return formatter
     }()
     
+    private var photos: [Photo] = []
     private let showSingleImageSegueIdentifier = "ShowSingleImage"
     let photosName = Array(0..<20).map{"\($0)"}
     @IBOutlet private var tableView: UITableView!
+    private let imageListService = ImagesListService()
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
+        testFetchPhotos()
+    }
+    
+    private func testFetchPhotos() {
+        print("🔄 Начинаем загрузку фото...")
+        
+        imageListService.fetchPhotosNextPage { [weak self] result in
+            switch result {
+            case .success(let photos):
+                print("✅ Загружено \(photos.count) фото")
+                
+                if let first = photos.first {
+                    print("📸 Первое фото:")
+                    print("  ID: \(first.id)")
+                    print("  Описание: \(first.welcomeDescription ?? "Нет")")
+                    print("  URL: \(first.thumbImageURL)")
+                }
+                
+                self?.photos = photos
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+                
+            case .failure(let error):
+                print("❌ Ошибка: \(error.localizedDescription)")
+            }
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

@@ -11,7 +11,7 @@ import Kingfisher
 class ProfileViewController: UIViewController {
     
     private let profileService = ProfileService.shared
-    
+    private let profileLogoutService = ProfileLogoutService.shared
     private var nameLabel = UILabel()
     private var usernameLabel = UILabel()
     private var descriptionLabel = UILabel()
@@ -101,6 +101,8 @@ class ProfileViewController: UIViewController {
         view.addSubview(descriptionLabel)
         view.addSubview(exitButton)
         
+        exitButton.addTarget(self, action: #selector(logoutButton), for: .touchUpInside)
+        
         NSLayoutConstraint.activate([
             profileImageView.widthAnchor.constraint(equalToConstant: 70),
             profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor),
@@ -118,6 +120,10 @@ class ProfileViewController: UIViewController {
             exitButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             exitButton.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor)
         ])
+    }
+    
+    @objc private func logoutButton(){
+        profileLogoutService.logout()
     }
     
 

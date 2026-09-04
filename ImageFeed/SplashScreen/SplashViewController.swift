@@ -18,7 +18,6 @@ class SplashViewController: UIViewController{
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         if let token: String = KeychainWrapper.standard.string(forKey: "Auth token"){
             fetchProfile(token: token)
         }else{

@@ -9,26 +9,31 @@ import Foundation
 import SwiftKeychainWrapper
 
 final class ImagesListService{
-    var lastLoadedPage: Int?
+    var lastLoadedPage: Int = 0
     private let decoder = JSONDecoder()
     private var task: URLSessionTask?
     private var urlSession = URLSession.shared
-    private (set) var avatarUrl: String?
+    private var lastLike: Bool?
     private(set) var photos: [Photo] = []
+    
+    static let didChangeNotification = Notification.Name(rawValue: "ImagesListServiceDidChange")
     
     private enum NetworkError: Error {
         case codeError
     }
     
-    func fetchPhotosNextPage(_ completion: @escaping (Result<[Photo], Error>) -> Void){
+    func fetchPhotosNextPage(){
         assert(Thread.isMainThread)
-        task?.cancel()
         
-        guard let request = makeImageRequest() else {
-            completion(.failure(NetworkError.codeError))
+        guard task == nil else{
             return
         }
         
+        let nextPage = lastLoadedPage + 1
+        guard let request = makeImageRequest(page: nextPage) else {
+            return
+        }
+                
         let task = objectTask(for: request) { [weak self] (result: Result<[PhotoResult], Error>) in
             guard let self else { return }
             
@@ -37,18 +42,21 @@ final class ImagesListService{
             switch result{
             case .success(let photosArray):
                 let convertedPhotos = photosArray.map {self.convertedToPhoto($0)}
-                self.photos = convertedPhotos
-                completion(.success(convertedPhotos))
+                DispatchQueue.main.async {
+                    self.photos.append(contentsOf: convertedPhotos)
+                    self.lastLoadedPage = nextPage
+                NotificationCenter.default.post(name: ImagesListService.didChangeNotification, object: self)
+                }
             case .failure(let error):
-                completion(.failure(error))
+                print("Ошибка загрузки страницы \(nextPage): \(error.localizedDescription)")
             }
         }
         self.task = task
         task.resume()
     }
     
-    private func makeImageRequest() -> URLRequest?{
-        guard let url = URL(string: "https://api.unsplash.com/photos?page=1&per_page=10") else { return nil }
+    private func makeImageRequest(page: Int) -> URLRequest?{
+        guard let url = URL(string: "https://api.unsplash.com/photos?page=\(page)&per_page=10") else { return nil }
         guard let token: String = KeychainWrapper.standard.string(forKey: "Auth token") else { return nil }
         
         var request = URLRequest(url: url)
@@ -67,6 +75,7 @@ extension ImagesListService{
                     DispatchQueue.main.async{
                         if let error = error{
                             completion(.failure(error))
+                            return
                         }
                         
                         guard let data = data else {
@@ -113,7 +122,7 @@ extension ImagesListService{
 extension ImagesListService{
     private func convertedToPhoto(_ photos: PhotoResult) -> Photo{
         let dateFormatter = ISO8601DateFormatter()
-        let createdAt = dateFormatter.date(from: photos.created_at)
+        let createdAt = dateFormatter.date(from: photos.createdAt)
         
         let size = CGSize(width: photos.width, height: photos.height)
         
@@ -124,6 +133,66 @@ extension ImagesListService{
             welcomeDescription: photos.description,
             thumbImageURL: photos.urls.thumb,
             largeImageURL: photos.urls.regular,
-            isLiked: false)
+            isLiked: photos.likedByUser)
+    }
+}
+
+extension ImagesListService{
+    func changeLike(photoId: String, isLike: Bool, _ completion: @escaping (Result<Void, Error>) -> Void){
+        assert(Thread.isMainThread)
+        
+        guard lastLike != isLike else {
+            return
+        }
+        
+        self.task = nil
+        
+        task?.cancel()
+        lastLike = isLike
+        
+        guard let request = makeLikeRequest(photoId: photoId, isLike: isLike) else { return }
+        
+        let task = data(for: request) { [weak self] result in
+            switch result{
+            case .success:
+                guard let self else { return }
+                
+                self.task = nil
+                self.lastLike = nil
+                
+                if let index = self.photos.firstIndex(where: { $0.id == photoId }){
+                    let photo = self.photos[index]
+                    let newPhoto = Photo(
+                        id: photo.id,
+                        size: photo.size,
+                        createdAt: photo.createdAt,
+                        welcomeDescription: photo.welcomeDescription,
+                        thumbImageURL: photo.thumbImageURL,
+                        largeImageURL: photo.largeImageURL,
+                        isLiked: !photo.isLiked)
+                    self.photos[index] = newPhoto
+                }
+                
+                completion(.success(()))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+        self.task = task
+        task.resume()
+    }
+    
+    private func makeLikeRequest(photoId: String, isLike: Bool) -> URLRequest?{
+        guard let url = URL(string: "https://api.unsplash.com/photos/\(photoId)/like") else { return nil}
+        guard let token: String = KeychainWrapper.standard.string(forKey: "Auth token") else { return nil}
+        var request = URLRequest(url: url)
+        
+        if isLike{
+            request.httpMethod = HTTPMethod.post.rawValue
+        }else{
+            request.httpMethod = HTTPMethod.delete.rawValue
+        }
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        return request
     }
 }

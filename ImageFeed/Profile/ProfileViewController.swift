@@ -6,39 +6,86 @@
 //
 
 import UIKit
+import Kingfisher
 
 class ProfileViewController: UIViewController {
-
+    
+    private let profileService = ProfileService.shared
+    
+    private var nameLabel = UILabel()
+    private var usernameLabel = UILabel()
+    private var descriptionLabel = UILabel()
+    private var profileImageView = UIImageView()
+    
+    private var profileImageServiceObserver: NSObjectProtocol?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         // Do any additional setup after loading the view.
         setupUIElements()
+        
+        profileImageServiceObserver = NotificationCenter.default
+            .addObserver(
+                forName: ProfileImageService.didChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self else { return }
+                self.updateAvatar()
+            }
+        
+        if let profile = profileService.profile {
+                updateProfileDetails(profile: profile)
+            }
+        updateAvatar()
+    }
+    
+    private func updateAvatar(){
+        guard
+            let profileImageURL = ProfileImageService.shared.avatarURL,
+            let url = URL(string: profileImageURL)
+        else{
+            return
+        }
+        
+        let processor = RoundCornerImageProcessor(cornerRadius: 35)
+        profileImageView.kf.setImage(with: url,
+                                     placeholder: UIImage(named: "Photo"),
+                                     options: [.processor(processor)])
+    }
+    
+    func updateProfileDetails(profile: Profile){
+        nameLabel.text = profile.name
+        usernameLabel.text = profile.loginName
+        descriptionLabel.text = profile.bio
     }
     
     func setupUIElements(){
+        self.view.backgroundColor = UIColor.ypBlack
+        
         let profileImage = UIImage(named: "Photo")
-        let profileImageView = UIImageView(image: profileImage)
+        profileImageView = UIImageView(image: profileImage)
         profileImageView.layer.cornerRadius = 35
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        let nameLabel = UILabel()
+        nameLabel = UILabel()
         nameLabel.text = "Екатерина Новикова"
         nameLabel.textColor = .ypWhite
         nameLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        let emailLabel = UILabel()
-        emailLabel.text = "@ekaterina_nov"
-        emailLabel.textColor = .ypGray
-        emailLabel.font = UIFont.systemFont(ofSize: 13)
-        emailLabel.translatesAutoresizingMaskIntoConstraints = false
+        usernameLabel = UILabel()
+        usernameLabel.text = "@ekaterina_nov"
+        usernameLabel.textColor = .ypGray
+        usernameLabel.font = UIFont.systemFont(ofSize: 13)
+        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        let helloTextLabel = UILabel()
-        helloTextLabel.text = "Hello, world!"
-        helloTextLabel.textColor = .ypWhite
-        helloTextLabel.font = UIFont.systemFont(ofSize: 13)
-        helloTextLabel.translatesAutoresizingMaskIntoConstraints = false
+        descriptionLabel = UILabel()
+        descriptionLabel.text = "Hello, world!"
+        descriptionLabel.textColor = .ypWhite
+        descriptionLabel.font = UIFont.systemFont(ofSize: 13)
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         
         guard let exitButtonImage = UIImage(named: "Exit button") else { return }
         let exitButton = UIButton.systemButton(
@@ -50,8 +97,8 @@ class ProfileViewController: UIViewController {
         
         view.addSubview(profileImageView)
         view.addSubview(nameLabel)
-        view.addSubview(emailLabel)
-        view.addSubview(helloTextLabel)
+        view.addSubview(usernameLabel)
+        view.addSubview(descriptionLabel)
         view.addSubview(exitButton)
         
         NSLayoutConstraint.activate([
@@ -62,12 +109,12 @@ class ProfileViewController: UIViewController {
             nameLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: 16),
             nameLabel.leadingAnchor.constraint(equalTo: profileImageView.leadingAnchor),
             nameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 8),
-            emailLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-            emailLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            emailLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
-            helloTextLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
-            helloTextLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
-            helloTextLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 8),
+            usernameLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+            usernameLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            usernameLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
+            descriptionLabel.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+            descriptionLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            descriptionLabel.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 8),
             exitButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
             exitButton.centerYAnchor.constraint(equalTo: profileImageView.centerYAnchor)
         ])

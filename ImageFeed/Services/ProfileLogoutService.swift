@@ -19,7 +19,7 @@ final class ProfileLogoutService{
         cleanToken()
         cleanProfile()
         cleanProfileImage()
-        switchRootViewControllerToAuthViewController()
+        switchRootViewControllerToSplashViewController()
     }
     
     private func cleanCookies(){
@@ -43,16 +43,16 @@ final class ProfileLogoutService{
         KeychainWrapper.standard.remove(forKey: "Auth token")
     }
     
-    private func switchRootViewControllerToAuthViewController(){
+    private func switchRootViewControllerToSplashViewController(){
         guard let windowsScene = UIApplication.shared.connectedScenes.first(where: {$0.activationState == .foregroundActive || $0.activationState == .foregroundInactive}) as? UIWindowScene,
               let windows = windowsScene.windows.first else{
             assertionFailure("Invalid window configuration")
             return
         }
         
-        let authViewController = UIStoryboard(name: "Main", bundle: .main).instantiateViewController(identifier: "AuthViewController")
+        let splashViewController = SplashViewController()
         
-        windows.rootViewController = authViewController
+        windows.rootViewController = splashViewController
         windows.makeKeyAndVisible()
     }
 }

@@ -21,12 +21,6 @@ final class SingleImageViewController: UIViewController {
             imageView.kf.setImage(with: url)
         }
     }
-//    var image: UIImage? {
-//        didSet{
-//            guard isViewLoaded else { return }
-//            imageView.image = image
-//        }
-//    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,8 +35,12 @@ final class SingleImageViewController: UIViewController {
         guard let imageUrl else { return }
         guard let url = URL(string: imageUrl) else { return }
         
+        UIBlockingProgressHUD.show()
+        
         imageView.kf.setImage(with: url) { [weak self] result in
             guard let self else { return }
+            
+            UIBlockingProgressHUD.dismiss()
             
             switch result{
             case .success(let result):

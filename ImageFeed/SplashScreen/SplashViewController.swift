@@ -9,6 +9,7 @@ import UIKit
 import SwiftKeychainWrapper
 
 class SplashViewController: UIViewController{
+    static let identifier = "SplashViewController"
     private var profileService = ProfileService.shared
     private var profileImageService = ProfileImageService.shared
     override func viewDidLoad() {

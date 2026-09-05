@@ -10,6 +10,7 @@ import SwiftKeychainWrapper
 
 final class ImagesListService{
     var lastLoadedPage: Int = 0
+    let dateFormatter = ISO8601DateFormatter()
     private let decoder = JSONDecoder()
     private var task: URLSessionTask?
     private var urlSession = URLSession.shared
@@ -121,7 +122,6 @@ extension ImagesListService{
 
 extension ImagesListService{
     private func convertedToPhoto(_ photos: PhotoResult) -> Photo{
-        let dateFormatter = ISO8601DateFormatter()
         let createdAt = dateFormatter.date(from: photos.createdAt)
         
         let size = CGSize(width: photos.width, height: photos.height)
@@ -132,7 +132,7 @@ extension ImagesListService{
             createdAt: createdAt,
             welcomeDescription: photos.description,
             thumbImageURL: photos.urls.thumb,
-            largeImageURL: photos.urls.regular,
+            largeImageURL: photos.urls.full,
             isLiked: photos.likedByUser)
     }
 }

@@ -27,12 +27,12 @@ final class ImagesListViewController: UIViewController {
         tableView.rowHeight = 200
         tableView.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 4, right: 0)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(updateTableView), name: ImagesListService.didChangeNotification, object: imageListService)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateTableViewAnimated), name: ImagesListService.didChangeNotification, object: imageListService)
         
         imageListService.fetchPhotosNextPage()
     }
     
-    @objc private func updateTableView() {
+    private func updateTableView() {
         photos = imageListService.photos
         tableView.reloadData()
     }
@@ -45,18 +45,8 @@ final class ImagesListViewController: UIViewController {
                 assertionFailure("Invalid segue destination")
                 return
             }
-            viewController.loadViewIfNeeded()
             
-            let imageUrl = photos[indexPath.row].largeImageURL
-            let url = URL(string: imageUrl)
-            let processor = RoundCornerImageProcessor(cornerRadius: 15)
-            
-            print("viewController:", viewController)
-            print("imageView:", viewController.imageView as Any)
-            
-            viewController.imageView.kf.setImage(with: url,
-                                                 placeholder: UIImage(named: "Photo"),
-                                                 options: [.processor(processor)])
+            viewController.imageUrl = photos[indexPath.row].largeImageURL
         }else{
             super.prepare(for: segue, sender: sender)
         }
@@ -83,7 +73,7 @@ extension ImagesListViewController{
         cell.previewImage.kf.setImage(with: url,
                                       placeholder: UIImage(named: "stub"),
                                       options: [.processor(processor)])
-        cell.likeButton.imageView?.image = photos[indexPath.row].isLiked ? UIImage(named: "Like button Active") : UIImage(named: "Like button Passive")
+//        cell.likeButton.imageView?.image = photos[indexPath.row].isLiked ? UIImage(named: "Like button Active") : UIImage(named: "Like button Passive")
         cell.dateLabel.text = dateFormatter.string(from: imageDate)
     }
 }
@@ -123,7 +113,7 @@ extension ImagesListViewController: UITableViewDelegate{
 }
 
 extension ImagesListViewController{
-    func updateTableViewAnimated(){
+    @objc func updateTableViewAnimated(){
         let oldElements = photos.count
         
         photos = imageListService.photos
@@ -149,14 +139,17 @@ extension ImagesListViewController{
 extension ImagesListViewController: ImagesListCellDelegate{
     func imageListCellDidTapLike(_ cell: ImagesListCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
-        let photos = photos[indexPath.row]
-        imageListService.changeLike(photoId: photos.id, isLike: !photos.isLiked) { result in
+        let photo = photos[indexPath.row]
+        
+        UIBlockingProgressHUD.show()
+        imageListService.changeLike(photoId: photo.id, isLike: !photo.isLiked) { result in
             switch result {
             case .success:
                 self.photos = self.imageListService.photos
-                self.configCell(for: cell, with: indexPath)
-                break
+                cell.setIsLiked(isLiked: self.photos[indexPath.row].isLiked)
+                UIBlockingProgressHUD.dismiss()
             case .failure(let error):
+                UIBlockingProgressHUD.dismiss()
                 print("Ошибка изменения лайка: \(error.localizedDescription)")
             }
         }

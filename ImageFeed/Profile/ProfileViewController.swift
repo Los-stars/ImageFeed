@@ -17,6 +17,8 @@ class ProfileViewController: UIViewController {
     private var descriptionLabel = UILabel()
     private var profileImageView = UIImageView()
     
+    var animationLayers = Set<CALayer>()
+    
     private var profileImageServiceObserver: NSObjectProtocol?
     
     override func viewDidLoad() {
@@ -123,7 +125,9 @@ class ProfileViewController: UIViewController {
     }
     
     @objc private func logoutButton(){
-        profileLogoutService.logout()
+        showAlert(title: "Пока, пока!", message: "Уверены, что хотите выйти?", yesComplition: { [weak self] in
+            self?.profileLogoutService.logout()
+        })
     }
     
 
@@ -137,4 +141,20 @@ class ProfileViewController: UIViewController {
     }
     */
 
+}
+
+
+
+extension ProfileViewController{
+    func showAlert(title: String, message: String, yesComplition: (() -> Void)? = nil){
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let yesAction = UIAlertAction(title: "Да", style: .cancel) { _ in
+            yesComplition?()
+        }
+        let noAction = UIAlertAction(title: "Нет", style: .default)
+        alertController.addAction(yesAction)
+        alertController.addAction(noAction)
+        alertController.preferredAction = noAction
+        present(alertController, animated: true)
+    }
 }

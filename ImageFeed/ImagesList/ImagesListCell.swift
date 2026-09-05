@@ -24,6 +24,11 @@ final class ImagesListCell: UITableViewCell{
         
         previewImage.kf.cancelDownloadTask()
     }
+    
+    func setIsLiked(isLiked: Bool){
+        let imageName = isLiked ? "Like button Active" : "Like button Passive"
+        likeButton.setImage(UIImage(named: imageName), for: .normal)
+    }
     @IBAction func likeButtonTapped(_ sender: Any) {
         delegate?.imageListCellDidTapLike(self)
     }

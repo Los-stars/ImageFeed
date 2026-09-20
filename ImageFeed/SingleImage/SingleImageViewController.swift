@@ -6,16 +6,19 @@
 //
 
 import UIKit
+import Kingfisher
 
 final class SingleImageViewController: UIViewController {
     
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var imageView: UIImageView!
     
-    var image: UIImage? {
+    var imageUrl: String? {
         didSet{
             guard isViewLoaded else { return }
-            imageView.image = image
+            guard let imageUrl else { return }
+            let url = URL(string: imageUrl)
+            imageView.kf.setImage(with: url)
         }
     }
     
@@ -23,21 +26,42 @@ final class SingleImageViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        guard let image else { return }
-        
-        imageView.image = image
-        imageView.frame.size = image.size
-        reScaleImage(image: image)
+        print("imageView:", imageView as Any)
+        print("scrollView:", scrollView as Any)
         
         scrollView.minimumZoomScale = 0.1
         scrollView.maximumZoomScale = 1.25
+        
+        guard let imageUrl else { return }
+        guard let url = URL(string: imageUrl) else { return }
+        
+        UIBlockingProgressHUD.show()
+        
+        imageView.kf.setImage(with: url) { [weak self] result in
+            guard let self else { return }
+            
+            UIBlockingProgressHUD.dismiss()
+            
+            switch result{
+            case .success(let result):
+                let image = result.image
+                
+                imageView.image = image
+                imageView.frame.size = image.size
+                reScaleImage(image: image)
+            case .failure(let error):
+                print("Ошибка загрузки изображения: \(error)")
+            }
+            
+        }
+        
     }
     @IBAction func didTapBackButton(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
     
     @IBAction func didTapShareButton(_ sender: Any) {
-        guard let image else { return }
+        guard let image = imageView.image else { return }
         
         let share = UIActivityViewController(activityItems: [image], applicationActivities: nil)
         

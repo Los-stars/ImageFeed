@@ -120,3 +120,10 @@ extension ProfileImageService{
                 return task
             }
     }
+
+
+extension ProfileImageService{
+    func cleanProfileImage(){
+        self.avatarURL = nil
+    }
+}

@@ -117,3 +117,10 @@ extension ProfileService{
                 return task
             }
     }
+
+
+extension ProfileService{
+    func clearProfile(){
+        self.profile = nil
+    }
+}

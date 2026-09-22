@@ -18,7 +18,7 @@ protocol ImagesListViewPresenterProtocol: AnyObject{
 }
 
 final class ImagesListPresenter: NSObject, ImagesListViewPresenterProtocol{
-    var view: ImagesListViewControllerProtocol?
+    weak var view: ImagesListViewControllerProtocol?
     private let imageListService: ImagesListService
     var photos: [Photo] = []
     

@@ -8,42 +8,89 @@
 import UIKit
 import Kingfisher
 
-class ProfileViewController: UIViewController {
+protocol ProfileViewControllerProtocol: AnyObject{
+    var presenter: ProfileViewPresenterProtocol? { get set }
+    func updateAvatar()
+    func updateProfileDetails(profile: Profile)
+}
+
+class ProfileViewController: UIViewController , ProfileViewControllerProtocol{
+    var presenter: ProfileViewPresenterProtocol?
     
-    private let profileService = ProfileService.shared
-    private let profileLogoutService = ProfileLogoutService.shared
     private var nameLabel = UILabel()
     private var usernameLabel = UILabel()
     private var descriptionLabel = UILabel()
     private var profileImageView = UIImageView()
+    private var exitButton = UIButton()
+    
+    private lazy var nameLabelSkeleton = SkeletonView()
+    private lazy var usernameLabelSkeleton = SkeletonView()
+    private lazy var descriptionLabelSkeleton = SkeletonView()
+    private lazy var profileImageViewSkeleton = SkeletonView()
     
     var animationLayers = Set<CALayer>()
-    
-    private var profileImageServiceObserver: NSObjectProtocol?
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.accessibilityIdentifier = "ProfileViewController"
+        
         // Do any additional setup after loading the view.
         setupUIElements()
+        setupSkeleton()
+        startSkeletonAnimation()
         
-        profileImageServiceObserver = NotificationCenter.default
-            .addObserver(
-                forName: ProfileImageService.didChangeNotification,
-                object: nil,
-                queue: .main
-            ) { [weak self] _ in
-                guard let self else { return }
-                self.updateAvatar()
-            }
+        if presenter == nil{
+            presenter = ProfileViewPresenter()
+        }
         
-        if let profile = profileService.profile {
-                updateProfileDetails(profile: profile)
-            }
-        updateAvatar()
+        
+        presenter?.view = self
+        presenter?.viewDidLoad()
+        
     }
     
-    private func updateAvatar(){
+    private func setupSkeleton(){
+        [nameLabelSkeleton, usernameLabelSkeleton, descriptionLabelSkeleton, profileImageViewSkeleton].forEach{
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+        profileImageViewSkeleton.layer.cornerRadius = 35
+        profileImageViewSkeleton.layer.masksToBounds = true
+        
+        NSLayoutConstraint.activate([
+            profileImageViewSkeleton.topAnchor.constraint(equalTo: profileImageView.topAnchor),
+            profileImageViewSkeleton.leadingAnchor.constraint(equalTo: profileImageView.leadingAnchor),
+            profileImageViewSkeleton.trailingAnchor.constraint(equalTo: profileImageView.trailingAnchor),
+            profileImageViewSkeleton.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor),
+            nameLabelSkeleton.topAnchor.constraint(equalTo: nameLabel.topAnchor),
+            nameLabelSkeleton.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
+            nameLabelSkeleton.trailingAnchor.constraint(equalTo: nameLabel.trailingAnchor),
+            nameLabelSkeleton.bottomAnchor.constraint(equalTo: nameLabel.bottomAnchor),
+            usernameLabelSkeleton.topAnchor.constraint(equalTo: usernameLabel.topAnchor),
+            usernameLabelSkeleton.leadingAnchor.constraint(equalTo: usernameLabel.leadingAnchor),
+            usernameLabelSkeleton.trailingAnchor.constraint(equalTo: usernameLabel.trailingAnchor),
+            usernameLabelSkeleton.bottomAnchor.constraint(equalTo: usernameLabel.bottomAnchor),
+            descriptionLabelSkeleton.topAnchor.constraint(equalTo: descriptionLabel.topAnchor),
+            descriptionLabelSkeleton.leadingAnchor.constraint(equalTo: descriptionLabel.leadingAnchor),
+            descriptionLabelSkeleton.trailingAnchor.constraint(equalTo: descriptionLabel.trailingAnchor),
+            descriptionLabelSkeleton.bottomAnchor.constraint(equalTo: descriptionLabel.bottomAnchor)
+        ])
+    }
+    
+    private func startSkeletonAnimation(){
+        profileImageViewSkeleton.startAnimation()
+        nameLabelSkeleton.startAnimation()
+        usernameLabelSkeleton.startAnimation()
+        descriptionLabelSkeleton.startAnimation()
+    }
+    
+    private func hideSkeletonAnimation(_ skeleton: SkeletonView?){
+        skeleton?.stopAnimating()
+        skeleton?.removeFromSuperview()
+    }
+    
+    func updateAvatar(){
         guard
             let profileImageURL = ProfileImageService.shared.avatarURL,
             let url = URL(string: profileImageURL)
@@ -54,13 +101,19 @@ class ProfileViewController: UIViewController {
         let processor = RoundCornerImageProcessor(cornerRadius: 35)
         profileImageView.kf.setImage(with: url,
                                      placeholder: UIImage(named: "Photo"),
-                                     options: [.processor(processor)])
+                                     options: [.processor(processor)]) { [weak self] _ in
+            self?.hideSkeletonAnimation(self?.profileImageViewSkeleton)
+        }
     }
     
     func updateProfileDetails(profile: Profile){
         nameLabel.text = profile.name
         usernameLabel.text = profile.loginName
         descriptionLabel.text = profile.bio
+        
+        hideSkeletonAnimation(nameLabelSkeleton)
+        hideSkeletonAnimation(usernameLabelSkeleton)
+        hideSkeletonAnimation(descriptionLabelSkeleton)
     }
     
     func setupUIElements(){
@@ -90,13 +143,14 @@ class ProfileViewController: UIViewController {
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         
         guard let exitButtonImage = UIImage(named: "Exit button") else { return }
-        let exitButton = UIButton.systemButton(
+        exitButton = UIButton.systemButton(
             with: exitButtonImage,
             target: self,
             action: nil)
         exitButton.tintColor = UIColor.ypRed
         exitButton.translatesAutoresizingMaskIntoConstraints = false
         
+        exitButton.accessibilityIdentifier = "logoutButton"
         view.addSubview(profileImageView)
         view.addSubview(nameLabel)
         view.addSubview(usernameLabel)
@@ -126,7 +180,7 @@ class ProfileViewController: UIViewController {
     
     @objc private func logoutButton(){
         showAlert(title: "Пока, пока!", message: "Уверены, что хотите выйти?", yesComplition: { [weak self] in
-            self?.profileLogoutService.logout()
+            self?.presenter?.logout()
         })
     }
     

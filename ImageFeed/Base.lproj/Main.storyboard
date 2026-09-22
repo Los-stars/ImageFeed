@@ -39,6 +39,9 @@
                                                 </imageView>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7C3-4p-mpf">
                                                     <rect key="frame" x="329" y="11" width="44" height="44"/>
+                                                    <accessibility key="accessibilityConfiguration" identifier="Like">
+                                                        <accessibilityTraits key="traits" button="YES" image="YES"/>
+                                                    </accessibility>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="44" id="MNy-Vv-ixe"/>
                                                         <constraint firstAttribute="width" constant="44" id="iUW-6K-ICw"/>
@@ -126,6 +129,7 @@
                             </scrollView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QeE-6n-I3E">
                                 <rect key="frame" x="8" y="8" width="40" height="40"/>
+                                <accessibility key="accessibilityConfiguration" identifier="NavBackButton"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="40" id="TTU-TB-vAP"/>
                                     <constraint firstAttribute="height" constant="40" id="sg2-YD-nAE"/>
@@ -192,6 +196,7 @@
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="djo-E2-oe1">
                                 <rect key="frame" x="16" y="680" width="361" height="48"/>
+                                <accessibility key="accessibilityConfiguration" identifier="Authenticate"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="48" id="MZa-JG-lw1"/>
                                 </constraints>
